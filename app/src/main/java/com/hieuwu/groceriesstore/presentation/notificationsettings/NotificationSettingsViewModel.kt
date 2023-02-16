@@ -4,10 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.hieuwu.groceriesstore.domain.models.UserModel
-import com.hieuwu.groceriesstore.domain.usecases.AuthenticateUserUseCase
+import com.hieuwu.groceriesstore.domain.usecases.GetProfileUseCase
 import com.hieuwu.groceriesstore.domain.usecases.UserSettingsUseCase
 import com.hieuwu.groceriesstore.presentation.utils.ObservableViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -15,12 +16,11 @@ import javax.inject.Inject
 @HiltViewModel
 class NotificationSettingsViewModel @Inject constructor(
     private val userSettingsUseCase: UserSettingsUseCase,
-    private val authenticateUserUseCase: AuthenticateUserUseCase
+    private val getProfileUseCase: GetProfileUseCase,
 ) :
     ObservableViewModel() {
-    private val _user =
-        authenticateUserUseCase.getCurrentUser() as MutableLiveData<UserModel?>
-    val user: LiveData<UserModel?>
+    private val _user: MutableStateFlow<UserModel?> = MutableStateFlow(null)
+    val user: MutableStateFlow<UserModel?>
         get() = _user
 
     private var _isDatabaseRefreshedNotiEnabled = MutableLiveData(false)
@@ -44,6 +44,18 @@ class NotificationSettingsViewModel @Inject constructor(
             field = value
         }
 
+    init {
+        getCurrentUser()
+    }
+
+    private fun getCurrentUser() {
+        viewModelScope.launch {
+            getProfileUseCase.execute(GetProfileUseCase.Input()).result.collect {
+                _user.value = it
+            }
+        }
+    }
+
     fun initializeSwitchValue(user: UserModel?) {
         user?.let {
             isPromotionNotiEnabled.value = it.isPromotionNotiEnabled
@@ -55,11 +67,13 @@ class NotificationSettingsViewModel @Inject constructor(
     fun updateNotificationSettings() {
         Timber.d("promo: $isPromotionNotiEnabled, ord: $isOrderCreatedNotiEnabled, db: $isDatabaseRefreshedNotiEnabled")
         viewModelScope.launch {
-            userSettingsUseCase.updateUserSettings(
-                user.value?.id!!,
-                isOrderCreatedNotiEnabled.value!!,
-                isDatabaseRefreshedNotiEnabled.value!!,
-                isPromotionNotiEnabled.value!!
+            userSettingsUseCase.execute(
+                UserSettingsUseCase.Input(
+                    user.value?.id!!,
+                    isOrderCreatedNotiEnabled.value!!,
+                    isDatabaseRefreshedNotiEnabled.value!!,
+                    isPromotionNotiEnabled.value!!
+                )
             )
         }
     }

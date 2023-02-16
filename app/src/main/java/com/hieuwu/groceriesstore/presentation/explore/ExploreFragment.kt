@@ -1,5 +1,6 @@
 package com.hieuwu.groceriesstore.presentation.explore
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,12 +11,17 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.hieuwu.groceriesstore.R
 import com.hieuwu.groceriesstore.databinding.FragmentExploreBinding
 import com.hieuwu.groceriesstore.presentation.adapters.CategoryItemAdapter
 import com.hieuwu.groceriesstore.presentation.adapters.GridListItemAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.fragment_main.*
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -78,12 +84,11 @@ class ExploreFragment : Fragment() {
         findNavController().navigate(direction)
     }
 
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     private fun setObserver() {
         viewModel.navigateToSelectedProperty.observe(viewLifecycleOwner) {
             if (null != it) navigateToProductDetail(it.id)
         }
-        viewModel.categories.observe(viewLifecycleOwner) {}
-
         viewModel.productList.observe(viewLifecycleOwner) {
             if (it.isEmpty()) {
                 Timber.d("Empty")
@@ -91,6 +96,14 @@ class ExploreFragment : Fragment() {
                 binding.productRecyclerview.visibility = View.VISIBLE
                 binding.animationLayout.visibility = View.GONE
                 Timber.d("Has item")
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.categories.collect {}
+                }
+
             }
         }
     }
