@@ -24,7 +24,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v1
@@ -32,6 +32,8 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
+     #- name: Check Detekt
+     #   run: chmod +x .github/scripts/gradlew_recursive.sh ; .github/scripts/gradlew_recursive.sh detekt
       - name: Build project
         run:  chmod +x .github/scripts/gradlew_recursive.sh ; .github/scripts/gradlew_recursive.sh assembleDebug
       - name: Zip artifacts

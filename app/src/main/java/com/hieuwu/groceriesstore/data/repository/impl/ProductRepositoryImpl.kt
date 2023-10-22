@@ -1,28 +1,24 @@
 package com.hieuwu.groceriesstore.data.repository.impl
 
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import com.hieuwu.groceriesstore.data.database.dao.LineItemDao
 import com.hieuwu.groceriesstore.data.database.dao.ProductDao
-import com.hieuwu.groceriesstore.data.database.entities.Product
 import com.hieuwu.groceriesstore.data.database.entities.asDomainModel
+import com.hieuwu.groceriesstore.data.network.dto.ProductDto
 import com.hieuwu.groceriesstore.data.repository.ProductRepository
 import com.hieuwu.groceriesstore.domain.models.ProductModel
 import com.hieuwu.groceriesstore.utilities.CollectionNames
-import com.hieuwu.groceriesstore.utilities.convertProductDocumentToEntity
-import kotlinx.coroutines.Dispatchers
+import com.hieuwu.groceriesstore.utilities.SupabaseMapper
+import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class ProductRepositoryImpl @Inject constructor(
     private val productDao: ProductDao,
-    private val lineItemDao: LineItemDao
+    private val lineItemDao: LineItemDao,
+    private val supabasePostgrest: Postgrest
 ) : ProductRepository {
 
     override val products: Flow<List<ProductModel>> =
@@ -31,46 +27,56 @@ class ProductRepositoryImpl @Inject constructor(
         }
 
     override suspend fun refreshDatabase() {
-        val fireStore = Firebase.firestore
-        val productList = mutableListOf<Product>()
-        fireStore.collection(CollectionNames.products).get().addOnSuccessListener { result ->
-            for (document in result) {
-                productList.add(convertProductDocumentToEntity(document))
-            }
-        }.addOnFailureListener { exception ->
-            Timber.w("Error getting documents.$exception")
-        }.await()
-
-        withContext(Dispatchers.IO) {
-            productDao.insertAll(productList)
+        try {
+            val result = supabasePostgrest[CollectionNames.products]
+                .select().decodeList<ProductDto>()
+            val products = result.map { SupabaseMapper.mapToEntity(it) }
+            productDao.insertAll(products)
+        } catch (e: Exception) {
+            Timber.e(e.message)
         }
     }
 
     override suspend fun updateLineItemQuantityById(quantity: Int, id: Long) {
-        withContext(Dispatchers.IO) {
+        try {
             lineItemDao.updateQuantityById(quantity, id)
+        } catch (e: Exception) {
+            Timber.e(e.message)
         }
     }
 
     override suspend fun removeLineItemById(id: Long) {
-        withContext(Dispatchers.IO) {
+        try {
             lineItemDao.removeLineItemById(id)
+        } catch (e: Exception) {
+            Timber.e(e.message)
         }
     }
 
     override fun searchProductsListByName(name: String?) =
         productDao.searchProductByName(name).map { it.asDomainModel() }
 
-    override fun getAllProductsByCategory(categoryId: String) =
-        productDao.getAllByCategory(categoryId).map {
-            it.asDomainModel()
+    override fun getAllProductsByCategory(categoryId: String): Flow<List<ProductModel>> {
+        return try {
+            productDao.getAllByCategory(categoryId).map {
+                it.asDomainModel()
+            }
+        } catch (e: Exception) {
+            Timber.e(e.message)
+            flow {}
         }
+    }
 
     override fun getProductById(productId: String): Flow<ProductModel> {
-        val productFlow = productDao.getById(productId)
-        return productFlow.map {
-            it.asDomainModel()
+        try {
+            val productFlow = productDao.getById(productId)
+            return productFlow.map {
+                it.asDomainModel()
+            }
+        } catch (e: Exception) {
+            Timber.e(e)
         }
+        return flow {}
     }
 
 }

@@ -1,12 +1,13 @@
 <h1 align="center"> 🚀 Groceries Store</h1>
 
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
+Progress of migrating from Firebase to Supabase
+ [Wiki](https://github.com/hieuwu/android-groceries-store/wiki)
+
  [![Android CI](https://github.com/hieuwu/android-groceries-store/actions/workflows/app-build.yml/badge.svg?branch=main)](https://github.com/hieuwu/android-groceries-store/actions/workflows/app-build.yml)
 
 
-![Groceries Store](https://i.imgur.com/Wn6ZcZl.jpeg)
+![Groceries Store](https://user-images.githubusercontent.com/43868345/233767546-ba25566b-7926-4140-82fe-12346a1f357e.png)
+
 <img src="https://github.com/hieuwu/hieuwu.github.io/blob/master/assets/img/rocket.gif" align="right" height="330px">
 
 <!-- [![Kotlin](https://img.shields.io/badge/kotlin-%23FF5722.svg?&style=for-the-badge&logo=kotlin&logoColor=white)](https://github.com/hieuwu/android-groceries-store)
@@ -17,7 +18,6 @@
 ![Github Action](https://img.shields.io/badge/Github%20Actions-424a53.svg?&style=for-the-badge&logo=githubactions&logoColor=white) -->
 
 [Download on Google Play Store](https://play.google.com/store/apps/details?id=com.hieuwu.groceriesstore)
-
 
 
 ## About
@@ -38,10 +38,6 @@ Groceries Store is a project to help people order grocery online. The main purpo
 - [MVVM Architecture](https://medium.com/swlh/understanding-mvvm-architecture-in-android-aa66f7e1a70b)
 
 
-## MAD Scorecard:
-
-![Caption](https://i.imgur.com/omCNl7x.png)
-
 ## Libraries
 - [Glide](https://github.com/bumptech/glide) - Loading images.
 - [Timber](https://github.com/JakeWharton/timber) - Logging.
@@ -59,42 +55,40 @@ Groceries Store is a project to help people order grocery online. The main purpo
 Android Studio Bumblebee or later
 SDK 23 or later
 
-#### Firestore
-1. Create your Firebase account and setup your own Google service following instruction from Firebase
-2. Update the properties in each collection as below
-- `products`
-   -    `category`: reference (to specific category)
-   -    `description`: string
-   -    `id`: string
-   -    `image`: string
-   -    `name`: string
-   -    `nutrition`: string
-   -    `price`: number
+#### Supabase (In-progress)
+See [Supabase Wiki](https://github.com/hieuwu/android-groceries-store/wiki) to keep track the process
+Database Schema:
 
-- `orders`
-   -    `address`: string
-   -    `lineItems`: array
-   -    `total`: number
+**categories**
+id | image | name | _id |
+--- | --- | --- | --- | 
 
-- `categories`
-   -    `description`: string
-   -    `image`: string
-   -    `name`: string
 
-- `users`
-   -    `address`: string
-   -    `email`: string
-   -    `name`: string
-   -    `phone`: string
+**line_items**
+id | lineItemId | productid | quantity | subtotal|orderId|
+--- | --- | --- | --- |  --- |  --- | 
 
-3. If you have any changes in the Firestore collections, feel free to update the `FirebaseStoreConstant.kt` file
+**orders**
+orderId | status |
+--- | --- | 
+
+**products**
+_id | name | description | price | image|category|nutrition|productid
+--- | --- | --- | --- |  --- |  --- | --- | --- | 
+
+
+**users**
+id | name | email | phone | isOrderCreatedNotiEnabled|isPromotionNotiEnabled|isDataRefreshedEnabled|address
+--- | --- | --- | --- |  --- |  --- | --- | --- | 
 
 ## Find this repository useful? :heart:
 Support it by joining __[stargazers](https://github.com/hieuwu/android-groceries-store/stargazers)__ for this repository. :star: <br>
 Also, __[follow me](https://github.com/hieuwu)__ on GitHub for my next creations! 🤩
 
 ## Contributors ✨
-
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->

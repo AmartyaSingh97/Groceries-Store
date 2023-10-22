@@ -1,9 +1,6 @@
 package com.hieuwu.groceriesstore.presentation.explore
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.asLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hieuwu.groceriesstore.data.database.entities.LineItem
 import com.hieuwu.groceriesstore.data.database.entities.Order
@@ -15,14 +12,13 @@ import com.hieuwu.groceriesstore.domain.usecases.CreateNewOrderUseCase
 import com.hieuwu.groceriesstore.domain.usecases.GetCategoriesListUseCase
 import com.hieuwu.groceriesstore.domain.usecases.GetCurrentCartUseCase
 import com.hieuwu.groceriesstore.domain.usecases.SearchProductUseCase
-import com.hieuwu.groceriesstore.presentation.utils.ObservableViewModel
 import com.hieuwu.groceriesstore.utilities.OrderStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,7 +30,8 @@ class ExploreViewModel @Inject constructor(
     private val searchProductUseCase: SearchProductUseCase,
     private val createNewOrderUseCase: CreateNewOrderUseCase,
     private val addToCartUseCase: AddToCartUseCase
-) : ObservableViewModel() {
+) : ViewModel() {
+
     private val _currentCart: StateFlow<OrderModel?> =
         getCurrentCard()!!
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
@@ -43,29 +40,21 @@ class ExploreViewModel @Inject constructor(
         getCategoriesList()!!.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)!!
     val categories: StateFlow<List<CategoryModel>?>
         get() = _categories
-    private val searchString: MutableLiveData<String> = MutableLiveData("")
+
+    private val _productList = MutableStateFlow<List<ProductModel>?>(null)
+    val productList: StateFlow<List<ProductModel>?> = _productList
+
+    private val _searchString = MutableStateFlow("")
+    val searchString: StateFlow<String> = _searchString
 
     fun searchNameChanged(name: String) {
-        searchString.value = name
+        _searchString.value = name
+        searchProduct(name)
     }
 
-    //TODO convert this to use flow
-    val productList: LiveData<List<ProductModel>> =
-        Transformations.switchMap(searchString) { string ->
-            if (string.isNotEmpty()) searchProduct(name = string).asLiveData()
-            else MutableLiveData()
-        }
-
-    private val _navigateToSelectedProperty = MutableLiveData<ProductModel?>()
-    val navigateToSelectedProperty: LiveData<ProductModel?>
-        get() = _navigateToSelectedProperty
-
-    fun displayProductDetail(product: ProductModel) {
-        _navigateToSelectedProperty.value = product
-    }
-
-    fun displayProductDetailComplete() {
-        _navigateToSelectedProperty.value = null
+    fun clearInput() {
+        _searchString.value = ""
+        _productList.value = null
     }
 
     init {
@@ -74,18 +63,15 @@ class ExploreViewModel @Inject constructor(
         }
     }
 
-    private fun searchProduct(name: String): Flow<List<ProductModel>> {
-        var output: Flow<List<ProductModel>> = flow {}
-        viewModelScope.launch {
-            when (val res = searchProductUseCase.execute(SearchProductUseCase.Input(name = name))) {
-                is SearchProductUseCase.Output -> {
-                    output = res.result
+    fun searchProduct(name: String) {
+        if (name.isNotBlank()) {
+            viewModelScope.launch {
+                val res = searchProductUseCase.execute(SearchProductUseCase.Input(name = name.trim()))
+                res.result.collect {
+                    _productList.value = it
                 }
-
             }
-
         }
-        return output
     }
 
     private fun getCurrentCard(): Flow<OrderModel?>? {

@@ -58,12 +58,14 @@
     <string name="update_profile_successfully">Update profile successfully!</string>
     <string name="update_profile_failed">Update profile failed!</string>
     <string name="notification_settings">Notification settings</string>
+    <string name="order_history_settings">Order history</string>
+
     <string name="notifications">Notifications</string>
     <string name="show_when_order_created">Show when order created</string>
     <string name="show_when_promotion_sent">Show when promotion sent</string>
     <string name="show_when_app_data_is_refreshed">Show when app data refreshed</string>
 
-<!--    Notification constant-->
+    <!--    Notification constant-->
     <string name="order_created_notification_channel_id" translatable="false">order_created_channel</string>
     <string name="order_created_notification_channel_name" translatable="true">Order created</string>
 
@@ -74,4 +76,11 @@
     <string name="promotion_sent_notification_channel_name" translatable="true">Promotion sent</string>
     <string name="notification_title">Groceries Store</string>
     <string name="delete">Delete</string>
+    <string name="welcome_to_our_store">Welcome to our store</string>
+    <string name="get_your_gorceries_in_as_fast_as_one_hour">Get your gorceries in as fast as one hour</string>
+    <string name="subtotal">Subtotal</string>
+    <string name="update_profile">Update Profile</string>
+    <string name="save">Save</string>
+    <string name="cd_navigate_back">Navigate back</string>
+    <string name="cd_save">Save</string>
 </resources>

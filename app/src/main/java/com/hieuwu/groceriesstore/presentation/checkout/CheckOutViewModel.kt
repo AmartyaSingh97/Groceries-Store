@@ -1,14 +1,12 @@
 package com.hieuwu.groceriesstore.presentation.checkout
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hieuwu.groceriesstore.domain.models.OrderModel
 import com.hieuwu.groceriesstore.domain.models.UserModel
 import com.hieuwu.groceriesstore.domain.usecases.GetCurrentCartUseCase
 import com.hieuwu.groceriesstore.domain.usecases.GetProfileUseCase
 import com.hieuwu.groceriesstore.domain.usecases.SubmitOrderUseCase
-import com.hieuwu.groceriesstore.presentation.utils.ObservableViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,16 +14,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class CheckOutViewModel @Inject constructor(
     private val getCurrentCartUseCase: GetCurrentCartUseCase,
     private val getProfileUseCase: GetProfileUseCase,
     private val submitOrderUseCase: SubmitOrderUseCase
-) :
-    ObservableViewModel() {
+) : ViewModel() {
     private val _user =
         getCurrentUser()!!.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     val user: StateFlow<UserModel?>
@@ -33,11 +30,6 @@ class CheckOutViewModel @Inject constructor(
 
     val order: StateFlow<OrderModel?> =
         getCurrentCard()!!.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    // TODO: check for type
-    private var _address = MutableStateFlow(0.0)
-    val address: StateFlow<Double>
-        get() = _address.asStateFlow()
 
     private var _totalPrice = MutableStateFlow(0.0)
     val totalPrice: StateFlow<Double>
